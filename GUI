@@ -1,0 +1,66 @@
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
+
+public class CalculatorFX extends Application {
+
+    @Override
+    public void start(Stage primaryStage) {
+        // UI Components
+        TextField num1Field = new TextField();
+        TextField num2Field = new TextField();
+        Label resultLabel = new Label("Result: ");
+        
+        Button addButton = new Button("Add");
+        Button subButton = new Button("Subtract");
+
+        // Event Handlers
+        addButton.setOnAction(e -> {
+            try {
+                int num1 = Integer.parseInt(num1Field.getText());
+                int num2 = Integer.parseInt(num2Field.getText());
+                int result = num1 + num2;
+                resultLabel.setText("Result: " + result);
+            } catch (NumberFormatException ex) {
+                resultLabel.setText("Invalid Input!");
+            }
+        });
+
+        subButton.setOnAction(e -> {
+            try {
+                int num1 = Integer.parseInt(num1Field.getText());
+                int num2 = Integer.parseInt(num2Field.getText());
+                int result = num1 - num2;
+                resultLabel.setText("Result: " + result);
+            } catch (NumberFormatException ex) {
+                resultLabel.setText("Invalid Input!");
+            }
+        });
+
+        // Layout
+        GridPane grid = new GridPane();
+        grid.setVgap(10);
+        grid.setHgap(10);
+
+        grid.add(new Label("Number 1:"), 0, 0);
+        grid.add(num1Field, 1, 0);
+        grid.add(new Label("Number 2:"), 0, 1);
+        grid.add(num2Field, 1, 1);
+        grid.add(addButton, 0, 2);
+        grid.add(subButton, 1, 2);
+        grid.add(resultLabel, 0, 3, 2, 1);
+
+        // Scene
+        Scene scene = new Scene(grid, 300, 200);
+        primaryStage.setTitle("Simple Calculator");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
+

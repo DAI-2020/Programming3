@@ -1,0 +1,168 @@
+//Task 1:
+import java.util.regex.*;
+import java.util.*;
+
+class NameFinder extends Thread {
+    private String text;
+    private List<String> names;
+
+    public NameFinder(String text, List<String> names) {
+        this.text = text;
+        this.names = names;
+    }
+
+    @Override
+    public void run() {
+        String[] words = text.split("\\s+");
+        for (String word : words) {
+            if (word.length() < 3 && Character.isUpperCase(word.charAt(0))) {
+                synchronized (names) {
+                    names.add(word);
+                }
+            }
+        }
+    }
+}
+
+class EmailHider extends Thread {
+    private String text;
+    private StringBuilder result;
+
+    public EmailHider(String text, StringBuilder result) {
+        this.text = text;
+        this.result = result;
+    }
+
+    @Override
+    public void run() {
+        String updated = text.replaceAll("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-z]{2,}", "[EMAIL_HIDDEN]");
+        synchronized (result) {
+            result.setLength(0);
+            result.append(updated);
+        }
+    }
+}
+
+class PhoneExtractor extends Thread {
+    private String text;
+    private List<String> phones;
+
+    public PhoneExtractor(String text, List<String> phones) {
+        this.text = text;
+        this.phones = phones;
+    }
+
+    @Override
+    public void run() {
+        Pattern pattern = Pattern.compile("\\+?\\d{2,3}[-\\s]?\\d{3,4}[-\\s]?\\d{4}");
+        Matcher matcher = pattern.matcher(text);
+        while (matcher.find()) {
+            synchronized (phones) {
+                phones.add(matcher.group());
+            }
+        }
+    }
+}
+
+public class MultiThreadTextTask {
+    public static void main(String[] args) throws InterruptedException {
+        String text = "Hi I am Al, my email is test123@gmail.com and you can call me at +20-1234-5678. Also contact Mr X at x@mail.com.";
+
+        List<String> names = new ArrayList<>();
+        List<String> phones = new ArrayList<>();
+        StringBuilder result = new StringBuilder(text);
+
+        Thread t1 = new NameFinder(text, names);
+        Thread t2 = new EmailHider(text, result);
+        Thread t3 = new PhoneExtractor(text, phones);
+
+        t1.start();
+        t2.start();
+        t3.start();
+
+        t1.join();
+        t2.join();
+        t3.join();
+
+        System.out.println("Final Text: " + result);
+        System.out.println("Names (<3 chars): " + names);
+        System.out.println("Phones: " + phones);
+    }
+}
+
+
+
+Task2:
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+class Printer extends Thread {
+    private BlockingQueue<String> queue;
+    private int id;
+
+    public Printer(int id, BlockingQueue<String> queue) {
+        this.id = id;
+        this.queue = queue;
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                String msg = queue.take();
+                if (msg.equals("END")) break;
+
+                String formatted = Character.toUpperCase(msg.charAt(0)) + msg.substring(1);
+                System.out.println("Printer " + id + ": " + formatted + " (length: " + msg.length() + ")");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class Sender extends Thread {
+    private BlockingQueue<String> queue;
+    private String[] messages;
+
+    public Sender(BlockingQueue<String> queue, String[] messages) {
+        this.queue = queue;
+        this.messages = messages;
+    }
+
+    @Override
+    public void run() {
+        try {
+            for (String msg : messages) {
+                queue.put(msg); 
+            }
+            queue.put("END");
+            queue.put("END");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+public class PrinterQueueSimulation {
+    public static void main(String[] args) {
+        BlockingQueue<String> queue = new LinkedBlockingQueue<>();
+
+        String[] messages = {
+            "hello everyone!",
+            "this is a printer queue simulation",
+            "good luck!"
+        };
+
+        Printer p1 = new Printer(1, queue);
+        Printer p2 = new Printer(2, queue);
+        Sender sender = new Sender(queue, messages);
+
+        p1.start();
+        p2.start();
+        sender.start();
+    }
+}
+
+

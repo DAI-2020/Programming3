@@ -1,0 +1,22 @@
+import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class Server {
+    public static void main(String[] args) {
+        try {
+            // Start RMI registry on port 6000
+            LocateRegistry.createRegistry(6000);
+
+            // Create Calculator implementation
+            Calculator calc = new CalculatorImpl();
+
+            // Bind service to registry
+            Naming.rebind("rmi://localhost:6000/CalculatorService", calc);
+
+            System.out.println("Server --> Calculator Service bound.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
